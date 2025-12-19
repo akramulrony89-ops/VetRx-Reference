@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetRx Reference | Brand Formulary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .brand-badge {
+            transition: all 0.2s ease;
+        }
+        .brand-badge:hover {
+            filter: brightness(0.95);
+            transform: translateX(4px);
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        /* Toast notification */
+        #toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #0f172a;
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        #toast.show {
+            visibility: visible;
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.5s;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-teal-800 text-white shadow-lg z-20 shrink-0 border-b border-teal-900">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md">
+                    <i class="fa-solid fa-prescription-bottle-medical text-3xl text-teal-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-tight leading-none">VetRx Reference</h1>
+                    <p class="text-[10px] md:text-xs text-teal-100 opacity-70 uppercase tracking-[0.2em] font-bold mt-1">Digital Formulary Database</p>
+                </div>
+            </div>
+            
+            <!-- Developer Info -->
+            <div class="flex flex-col md:items-end text-center md:text-right">
+                <h2 class="text-sm md:text-base font-bold text-white tracking-wide">MD AKRAMUL HAQUE</h2>
+                <p class="text-[11px] text-teal-200 font-bold uppercase tracking-wider">BCS (LIVESTOCK)</p>
+                <a href="tel:01701057143" class="text-[11px] text-teal-300 hover:text-white transition-colors flex items-center justify-center md:justify-end gap-1.5 mt-1 font-semibold">
+                    <i class="fa-solid fa-phone-flip text-[10px]"></i> 01701057143
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+        
+        <!-- Sidebar Controls -->
+        <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col shadow-xl z-10 overflow-y-auto">
+            <div class="p-6 space-y-8">
+                <div>
+                    <h3 class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">Data Filtering</h3>
+                    
+                    <!-- 1. Category Dropdown -->
+                    <div class="mb-5">
+                        <label for="typeSelect" class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
+                            1. Select Category
+                        </label>
+                        <select id="typeSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-semibold text-sm">
+                            <option value="All">All Categories</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Generic Name Dropdown -->
+                    <div class="mb-5">
+                        <label for="genericSelect" class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
+                            2. Select Generic Name
+                        </label>
+                        <select id="genericSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-semibold text-sm">
+                            <option value="All">All Generics</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Search Box -->
+                    <div>
+                        <label for="searchInput" class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
+                            3. Search Brand or Generic
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Type to search..." class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium">
+                            <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-slate-400 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Generics Found</span>
+                    <span id="drug-count" class="bg-teal-600 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-sm">0</span>
+                </div>
+
+                <div class="p-4 bg-teal-50 rounded-xl border border-teal-100">
+                    <p class="text-[10px] text-teal-800 font-bold leading-relaxed">
+                        <i class="fa-solid fa-circle-info mr-1"></i>
+                        Click on any drug row to view the full single-column brand list and copy names.
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Display Table -->
+        <main class="flex-1 bg-slate-100 p-4 md:p-6 overflow-hidden flex flex-col">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+                <!-- Table Header -->
+                <div class="bg-slate-50 border-b border-slate-200 p-5 grid grid-cols-12 gap-4 font-black text-slate-500 text-[10px] uppercase tracking-[0.2em] shrink-0">
+                    <div class="col-span-5 md:col-span-4 pl-2 flex items-center gap-2">
+                        <i class="fa-solid fa-dna text-teal-500"></i> Generic Compound
+                    </div>
+                    <div class="col-span-7 md:col-span-8 border-l border-slate-200 pl-6 flex items-center gap-2">
+                        <i class="fa-solid fa-tags text-teal-500"></i> Leading Brand Names
+                    </div>
+                </div>
+
+                <!-- Scrollable Body -->
+                <div id="resultsContainer" class="overflow-y-auto custom-scrollbar flex-1">
+                    <!-- Rows injected here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden flex flex-col items-center justify-center h-full text-slate-400 p-10 animate-fade-in">
+                    <div class="bg-slate-50 p-6 rounded-full mb-6">
+                        <i class="fa-solid fa-mortar-pestle text-6xl text-slate-200"></i>
+                    </div>
+                    <p class="font-bold text-slate-500 text-lg">No Results Found</p>
+                    <p class="text-sm">Try adjusting your filters or search keywords.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Enhanced Modal (Single Column Brands) -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300 overflow-hidden flex flex-col max-h-[90vh]" id="modalContent">
+            <!-- Modal Header -->
+            <div class="bg-teal-900 text-white p-8 shrink-0 relative">
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-teal-700/50 p-2 rounded-lg">
+                            <i class="fa-solid fa-capsules text-teal-300 text-xl"></i>
+                        </div>
+                        <h3 class="font-black text-2xl md:text-3xl tracking-tight leading-none" id="modalGeneric">-</h3>
+                    </div>
+                    <p class="text-teal-400 text-[10px] uppercase tracking-[0.25em] font-black mt-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></span>
+                        <span id="modalType">-</span>
+                    </p>
+                </div>
+                <button onclick="closeModal()" class="absolute top-6 right-6 bg-white/10 hover:bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center transition-all group">
+                    <i class="fa-solid fa-xmark group-hover:rotate-90 transition-transform"></i>
+                </button>
+            </div>
+
+            <!-- Modal Brand Column -->
+            <div class="p-8 bg-slate-50 overflow-y-auto custom-scrollbar flex-1">
+                <div class="mb-6 flex items-center justify-between">
+                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Available Brands</h4>
+                    <span class="text-[10px] text-teal-600 font-bold bg-teal-100 px-3 py-1 rounded-full">Tap to Copy</span>
+                </div>
+                
+                <div id="brandList" class="flex flex-col gap-3">
+                    <!-- Brand items will be injected here as a SINGLE COLUMN -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-white p-6 border-t border-slate-100">
+                <button onclick="closeModal()" class="w-full bg-slate-900 hover:bg-black text-white py-4 rounded-2xl font-black transition-all shadow-lg active:scale-95 text-sm uppercase tracking-widest">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+
+    <script>
+        const drugDatabase = [
+            { type: "Antibiotic", generic: "Penicillin", brand: "Inj. Bipen vet 40 (SQUARE), Inj. Pronapen vet 40 (RENATA), Inj. Pronacillin (TECHNO), Inj. Penbacillin 40 (ACI), Inj. Procaben vet 40 (Opsonin), Inj. Prona vet 40 (Ethical), Inj. Bipen vet 40 (NAVANA), Inj. Vetopen 40 (OPSONIN), Inj. Combipen vet (ACME)" },
+            { type: "Antibiotic", generic: "Penicillin + Streptomycin", brand: "Inj. Streptopen (RENATA), Inj. SP – Vet (ACME), Inj. Strepocin-G 2.5 (OPSONIN), Inj. Strepto-P (ACI), Inj. Penstrep VET (Ethical), Streptocillin (TECHNO), Inj. Combicillin LA"},
+            { type: "Antibiotic", generic: "Amoxicillin", brand: "Inj. Hicomox (OPSONIN), Inj. Moxacil – Vet (SQUARE), Inj. Moxilin Vet (ACME), Inj. Acimox Vet (ACI), Inj. Amoxyvet (TECHNO), Inj. Fimox Vet (POPULAR), Inj. Invemox 15% LA (ACI)"},
+            { type: "Antibiotic", generic: "Amoxicillin + Cloxacillin", brand: "Inj. Amcox (RENATA), Inj. Moxiclox (ACME)" },
+            { type: "Antibiotic", generic: "Amoxicillin Bolus", brand: "Bol. Renamox 500 (RENATA), Bol. Navamox 500 (NAVANA), Bol. A-lomo (Al-Madina), Bol. Moxin Vet (Popular), Bol. Hicomox Vet (OPSONIN), Bol. Fimox Vet (Opsonin), Bol. Amoxycill (Albion), Bol. Amoxicyl (CHEMIST), Bol. Moxilin Vet (ACME)" },
+            { type: "Antibiotic", generic: "Amoxicillin/Clavulanate", brand: "Clavamox, Synulox, Augmed Vet" },
+            { type: "Antibiotic", generic: "Ampicillin", brand: "Inj. Picillin Vet 2 g (POPULAR), Inj. Ampicin-Vet (SQUARE), Inj. AciPillin (ACI), Inj. Bipilin DS (OPSONIN), Inj. Bipilin (OPSONIN), Inj. Ampicin (SQUARE), Inj. Acipillin (ACI)"},
+            { type: "Antibiotic", generic: "Cephalosporin", brand: "Inj. Renacef Vet (RENATA), Inj. Eracef Vet (POPULAR), Inj. Acicef-3 (Vet) (ACI), Inj. Ceftron-Vet (SQUARE), Inj. Cefixon Vet (TECHNO), Inj. Triject-Vet (SK+F), Inj. Trizon Vet 1gm & 2gm (ACME), Inj. Taxovet (OPSONIN)" },
+            { type: "Antibiotic", generic: "Ciprofloxacin", brand: "Inj. Ciprocín Vet (SQUARE), Inj. Cipro-A Vet (ACME), Inj. Ciprolox (SK+F), Inj. Ciprosol (TECHNO), Inj. Civox Vet (POPULAR)" },
+{
+  type: "Antibiotic",
+  generic: "Ciprofloxacin (Bolus)",
+  brand: "Bol. Civox Vet (POPULAR), Bol. Ciprocín Vet (SQUARE), Bol. Beuflox (Incepta), Bol. Cipro-A Vet (ACME), Bol. Cipro (TECHNO)"
+},
+{
+  type: "Antibiotic",
+  generic: "Tetracyclines",
+  brand: "Inj. Chemycin-100 (CHEMIST), Inj. Oxyvet-100 (ACI), Inj. Renamycin-100 (RENATA), Inj. Technomycin-100 (TECHNO), Inj. Tetravet-100 (ACME), Inj. Vetomycin (OPSONIN), Inj. Chemycin-LA (CHEMIST), Inj. Renamycin-LA (RENATA), Inj. Oetrra-Vet LA (SQUARE), Inj. Technomycin LA (TECHNO), Inj. Tetravet LA (ACME), Inj. Eskamycin LA (SK+F), Bol. Chemycin (CHEMIST)"
+},
+{
+  type: "Antibiotic",
+  generic: "Tetracyclines – Bolus, Tablet, Capsule, Powder",
+  brand: "Bol. Vetomycin (OPSONIN), Tab. Renamycin (RENATA), Bol. OTC Vet (POPULAR), Capsule Oetrra-Vet (SQUARE), Bol. Technomycin (TECHNO), Bol. Tetravet (ACME), Bol. Eskamycin (SK+F), Bol. Oxysentin (NOVARTIS), Tab. Bactitab (ACI), Bol. Chemycin DS (CHEMIST), Bol. Technomycin-DS (TECHNO), Pow. Doxacil-Vet (SQUARE), Pow. Eska-CTC (SK+F), Pow. Oxyvet (GLOBE)"
+},
+{
+  type: "Antibiotic",
+  generic: "Tylosin Tartrate",
+  brand: "Inj. Tylo Vet (ACME), Inj. Tylochem (CHEMIST), Inj. Tylocef (SK+F)"
+},
+{
+  type: "Antibiotic",
+  generic: "Gentamicin",
+  brand: "Inj. Gentasone-5 (CHEMIST), Inj. Acigan Vet 5 (ACI), Inj. Gentacin 5%, Inj. Gentamin-5% (TECHNO), Inj. Gentamin-5% (OPSONIN), Inj. Regenta 5% (BENGAL), Inj. Gentaren (RENATA), Inj. Algenta Vet (Al-Madina), Inj. Eskagen Vet 100 mg (SK+F), Inj. Genacyn-Vet (SQUARE), Inj. Acigent-10 (ACI), Inj. Genta-10 (ACME), Inj. Gentabac Vet 10% (POPULAR)"
+},
+{
+  type: "Antibiotic",
+  generic: "Sulphadimidine / Sulphonamides",
+  brand: "Inj. Diadin (RENATA), Inj. Dimidin (TECHNO), Inj. Salidone (ACI), Inj. Fadmin (SK-F), Inj. Dimi-Vet (SQUARE), Inj. Sulfasol-Vet (ACME), Inj. Sulmidin Vet (AVON), Bol. Diadin (RENATA), Bol. Sulfasol Vet (ACME), Bol. Sulmidine (Al-Madina)"
+},
+{
+  type: "Antibiotic",
+  generic: "Sulphadiazine + Sulphadimidine + Sulphapyridine",
+  brand: "Bol. Sulpha 3 (RENATA), Bol. Triplex-Vet (SQUARE), Bol. Bactrim (ACI), Bol. Trisulpha (NOVARTIS)"
+},
+{
+  type: "Antibiotic",
+  generic: "Sulphadimine Mixed Bolus",
+  brand: "Bol. Sulphadin (ACME), Bol. 3 Sulfa (POPULAR), Bol. Sulfamid-3 (SK-F), Bol. Trimadie (RAMPART), Bol. Al-Sulpha (ALMADINA)"
+},
+{
+  type: "Antibiotic",
+  generic: "Sulphadiazine + Trimethoprim",
+  brand: "Bol. Reniatrim (RENATA), Bol. S-trim (NAVANA), Bol. Sulphatrim (TECHNO), Bol. Eskatrim (SK+F), Bol. Biotrim Vet (BIOPHAMA)"
+},
+{
+  type: "Antibiotic",
+  generic: "Sulphamethoxazole + Trimethoprim",
+  brand: "Sus. Sulprim Vet (SQUARE), Inj. Politrim-Vet (ACME), Inj. Jasotrim (JAYSON), Bol. Tmprin-S (ACI), Bol. Cotrim-Vet (SQUARE), Bol. Politrim Vet (ACME), Bol. Cicadot (OPSONIN), Bol. Sat (FnF)"
+},
+{
+  type: "Antibiotic",
+  generic: "Sulpha Drug + Streptomycin",
+  brand: "Bol. Sulphadin (ACME), Bol. Chemosulfa (CHEMIST), Bol. Sulfon (OPSONIN), Bol. Sulfa Vet (RENATA), Bol. Sulba Vet (GENTRY), Bol. Streptoplus (NAVANA), Bol. Diatrin (ACI), Bol. Sulphamidine S (SK+F), Bol. Trisulfon-S (TECHNO), Bol. Streptosulfa (NOVARTIS), Bol. Trimycin-Vet (SQUARE), Bol. Al Vet (ALBION)"
+}, 
+{
+  type: "Antibiotic",
+  generic: "Anti-mastitis Preparations",
+  brand: "Gentipra-TS (HIPRA), Mastipra (HIPRA), Neomast (TECHNO), Oint. Mastinil (TECHNO), Inj. Mastilex (ACI), Neomastripra JR-5 (HIPRA), Oint. Gentamast (Arifs), Mastijet Forte (BENGAL), Pow. Masticareplus (SQUARE), Pow. No-Masti Plus (ACI)"
+}, 
+{
+  type: "Antibiotic",
+  generic: "FMD Preparations",
+  brand: "Pow. Apthocare (SQUARE), Sol. FMD Cure (ACME), Sol. Sodicard (CHEMIST), Pow. Oxyfem (RENATA), Pow. FMD Clean Vet (ACME), Sol. Alto (CHEMIST)"
+},
+{
+  type: "Antibiotic",
+  generic: "Eye Drops",
+  brand: "Drop. Cipro-A (ACME), Drop. Cipro-C (CHEMIST), Drop. Mexflo (SQUARE), Drop. Iventi (SQUARE), Drop. Genta (RENATA), Drop. Optabac (POPULAR), Drop. Chloramphenicol (CHEMIST), Drop. A Phenicol (ACME), Drop. Intobac (Incepta), Drop. Cinarex (Beximco), Drop. 1% Silver Nitrate (CHEMIST), Drop. Locular Plus (SQUARE), Drop. Alacot DS (SQUARE), Drop. Ocsul (POPULAR), Drop. Dexan (CHEMIST), Drop. Civodex Vet (POPULAR), Drop. Lubtear (SQUARE), Drop. Dexonex-C (SQUARE)"
+},
+{
+  type: "Antibiotic",
+  generic: "Ear Drops",
+  brand: "Drop. Ciprocin (SQUARE), Drop. Genacyn (SQUARE), Drop. SQ-Mycetin (SQUARE), Drop. Acicot (ACI), Drop. Dexacort (Opso Saline Ltd), Drop. Dexadron (Reman Drug Laboratories), Drop. Dexamine (Jayson), Drop. Aprodex (Aristopharma), Drop. Bactin-D (IBN SINA), Drop. Beuflox-D (Incepta), Drop. Ceredox (Gaco), Drop. CIP-D (Asiatic), Drop. Civodex (POPULAR), Drop. Opdex (Nipa)"
+},
+{
+  type: "Antibiotic",
+  generic: "Ointment / Emulsion Preparations",
+  brand: "Oint. Renamycin (RENATA), Oint. Povin 5% (OPSONIN), Emulsion Scanil 25% (RENATA)"
+},
+{
+  type: "Antihistaminic",
+  generic: "Pheniramine Maleate",
+  brand: "Inj. Antihista (SQUARE), Inj. Hista Vet (ACI), Inj. Asta Vet (ACME), Inj. Histanol (CHEMIST), Inj. Alar Vet (POPULAR), Inj. Alerin (SK-F), Inj. Phenavet (Eon), Inj. Pheniravet (Navana), Inj. Phen Vet (FnF), Inj. Nira vet (OPSONIN)" },
+{
+  type: "Antihistaminic",
+  generic: "Chlorpheniramine Maleate",
+  brand: "Inj. Histacin Vet (JAYSON), Inj. Rencacin (RENATA), Inj. Penar Vet (TECHNO), Inj. CM Vet (Globe)"
+},
+{
+  type: "Antihistaminic",
+  generic: "Promethazine Group",
+  brand: "Inj. Allerergen (RENATA), Inj. Flomic Vet (FnF), Inj. Phenerax (JAYSON), Inj. Flugan (TECHNO), Inj. Promodin Vet (CHEMIST), Bol. Dellergen Vet (RENATA), Bol. Promethazine (Al-Madina), Bol. Prom-al (Albion), Bol. Quickler (POPULAR)"
+},
+{
+  type: "NSAID",
+  generic: "Paracetamol Group",
+  brand: "Inj. Tamen IV (OPSONIN), Inj. Renova IV (SK+F), Bol. Pyro Vet (TECHNO), Bol. Pyraglin Vet (RENATA), Bol. Fast Vet (ACME), Bol. Gesic Vet (POPULAR), Bol. Acitamol (ACI), Bol. Apa Vet (OPSONIN), Bol. Aceta Vet (Biopharma), Bol. Pyroba Vet (Gentry), Bol. Para-C Vet (CHEMIST), Bol. Para Vet (FnF), Bol. Ace Vet (SQUARE)"
+},
+{
+  type: "NSAID",
+  generic: "Meloxicam Group",
+  brand: "Inj. Melo Vet (TECHNO), Inj. Loxikam (OPSONIN), Inj. M-Pain Vet (ACI), Inj. Mel Vet (ACME), Inj. Melvet Plus (ACME), Bol. Mel-Vet (ACME), Bol. Loxikam (OPSONIN)"
+},
+{
+  type: "NSAID",
+  generic: "Metamizole",
+  brand: "Inj. Fevasole (ACI), Inj. Novalgin (Sanofi), Inj. D Pron (GENTRY)"
+},
+{
+  type: "NSAID",
+  generic: "Tolfenamic Acid",
+  brand: "Inj. Fevenil (RENATA), Inj. Tufnil Vet (SK+F), Inj. Toalfamin (GENTRY), Inj. Tamic Vet (TECHNO)"
+},
+{
+  type: "NSAID",
+  generic: "Flunixin Meglumine",
+  brand: "Inj. Fluximine (RENATA), Inj. Fixin Vet (RENATA), Inj. Pif-R (SK+F), Inj. Fluximine (BENGAL)"
+},
+{
+  type: "SAID",
+  generic: "Dexamethasone Group",
+  brand: "Inj. Longosona (ACI), Inj. Dexaroid (SK+F), Inj. Dexavet (TECHNO), Inj. Dexaphos (CHEMIST), Inj. Decafos (TECHNO), Bol. Steron (ACME), Bol. Vetodex (OPSONIN), Inj. Predexanol-Plus (RENATA), Inj. Dexolon Vet (FnF)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Albendazole",
+  brand: "Bol. Helmex (RENATA), Bol. Almex (SQUARE), Bol. Bonazole (ACME), Bol. Endokil (ACI), Bol. Al-vet (FnF), Bol. Helvizole (OPSONIN), Bol. Albencid (CHEMIST), Bol. Albentic Vet (POPULAR), Bol. Alben Vet, Bol. Worm Kill (Navana), Bol. Azole Vet (Biopharma), Bol. Heliban (Incepta)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Fenbendazole",
+  brand: "Bol. Peraclear (TECHNO), Bol. Fenzol Vet (ACME), Bol. Fen Vet (Globe)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Mebendazole",
+  brand: "Bol. Panamox (JAYSON), Bol. Ebenda (Ethical)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Oxyclozanide + Tetramisole",
+  brand: "Bol. Tremacid (ACME), Bol. Tetrainid (TECHNO), Bol. Trox (CHEMIST), Bol. Levanid (ACME)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Triclabendazole",
+  brand: "Bol. Acinex (RENATA), Bol. Pasinex (NOVARTIS), Bol. Pasinil (TECHNO), Bol. Claben (Globe)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Levamisole",
+  brand: "Bol. Ralnex (NOVARTIS), Bol. Leva Vet (ACME), Bol. Tecnomysol (TECHNO), Bol. Vaminil (POPULAR)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Triclabendazole + Levamisole",
+  brand: "Bol. Endex (NOVARTIS), Bol. Levex (TECHNO), Bol. Ltzol Vet (POPULAR), Bol. Trimisol (OPSONIN), Bol. Renadex (RENATA), Bol. Antiworm (ACI), Bol. Tricalzol (SK+F), Bol. LT Vet (ACME), Bol. Triolev Vet (SQUARE), Bol. Trilev (CHEMIST), Bol. Keminex Vet (KEMIKO), Bol. Leva Plus, Bol. Lezol-4 (ACME)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Hexachlorophene Group",
+  brand: "Bol. Flukenil (RENATA), Bol. Hexatin (NOVARTIS)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Niclosamide Group",
+  brand: "Bol. Niclovet (FNF), Bol. Niclosam (CHEMIST), Bol. Niclosam Plus (CHEMIST)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Nitroxynil Sodium Group",
+  brand: "Inj. Nitroxin-A (ACME), Inj. Niloxin (SK+F), Inj. Oxynil (TECHNO), Inj. Nixil (OPSONIN), Inj. Nitroxinyl (ACI), Inj. Na Vet (POPULAR), Inj. Nitronex (RENATA), Inj. Nitronil (CHEMIST)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Piperazine Citrate Group",
+  brand: "Pow. Pera Vet WSP 100 (ACME), Pow. P Vet (OPSONIN), Pow. Pc Vet (Globe), Pow. Perazin Vet (Jayson), Pow. Pimex Vet (Popular), Pow. Piper 100 (Square), Pow. PiperMed (MedRX), Pow. Pirazine 100 (Techno), Pow. Rena Per Vet 100 (Renata), Pow. Vetapar (Navana), Pow. Razimax Vet (Insepta), Pow. Kriminash (Eon), Pow. Helmacid (Al-Madina), Pow. Eskapar (SK+F), Pow. Ascacarex (ACI), Pow. Afdrazin (Advent), Pow. Abipar 100 (Rampart Power)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Ivermectin Group",
+  brand: "Inj. Vermic (Techno), Inj. Amectin (Renata), Inj. A-Ver (Globe), Inj. Acimec (ACME), Inj. Invect (ACI), Inj. Parastin Vet (POPULAR), Inj. Ivertin (SQUARE), Inj. Iverin (CHEMIST), Inj. Amecin Plus Vet (ACME), Normectin (CHEMIST), A Mectin Vet Pour On (SQUARE), Ivermec Pour On (Ethical), Tab. Ivactin (Aristopharma), Tab. Scabo 6 (Delta Pharma), Tab. Ivera 6 (Beximco)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Pyrantel Pamoate Group",
+  brand: "Syp. Delentin (RENATA), Syp. Pyropin (Organic Health), Syp. Wormex (Hallmark), Syp. Minisol (Albion), Syp. Melphin (Beximco)"
+},
+{
+  type: "Anthelmintic",
+  generic: "Antimony Preparation",
+  brand: "Inj. Antihomate (Techno), Inj. Anthomilan (Rampart Power)"
+},
+{
+  type: "Anti-Protozoal",
+  generic: "Metronidazole",
+  brand: "Inj. Metro IV (OPSONIN), Inj. Flagyl IV (Sanofi), Bol. Amodis Vet (SQUARE), Bol. Metrovet (TECHNO), Bol. Dirovet (ACME), Bol. Metonid (POPULAR), Bol. Acimetro Vet (ACI), Bol. Zonabac (OPSONIN), Bol. Metoba (GENTRY), Bol. Medavet (NAVANA), Bol. Biozyl Vet (Bio Pharma), Bol. Al-Metro (ALBION)"
+}, 
+{
+  type: "Anti-Protozoal",
+  generic: "Imidocarb Dipropionate",
+  brand: "Inj. E-Carbzol (ACI), Inj. Babecure (ACME), Inj. Ectorid (RENATA), Inj. Bazenil (TECHNO)"
+},
+{
+  type: "Anti-Protozoal",
+  generic: "Diminazene Aceturate",
+  brand: "Inj. Berenil (INTERVET), Inj. Babocp (SQUARE), Inj. Diminal (ACI)"
+},
+{
+  type: "Fly Repellent",
+  generic: "Fly Repellent Preparations",
+  brand: "Pow. Negotox (CHEMIST), Pow. Ectonil (SQUARE), Pow. Nagavon Plus Vet (Albion), Pow. Metrifon (Ethical), Oint. Dressgel FR (ACME), Sol. Cyminvet (FnF), Sol. Cypermil 10 EC (SQUARE), Sol. Superkiller E (Pf)"
+},
+{
+  type: "Antifungal",
+  generic: "Griseofulvin",
+  brand: "Tab. Griseofulvin (CHEMIST), Tab. Fulcinex (ACI), Tab. Grisovin FP (Glaxo SmithKline), Soln. Fulcinex (ACI), Sol. Griseofulvin (Albion)"
+},
+{
+  type: "Antifungal",
+  generic: "Imidazole Group (Ketoconazole / Fluconazole)",
+  brand: "Tab. Ketoral (SQUARE), Tab. Tobucon (OPSONIN), Tab. Fludin-OD (GSK), Susp. Flugal (SQUARE), Shampoo Keto Con (OPSONIN), Shampoo Dancel (INCEPTA)"
+},
+{
+  type: "Antifungal",
+  generic: "Fluconazole",
+  brand: "Tab. Canazole (ACI), Tab. Fluconal (ACME), Susp. Lucan R (RENATA)"
+},
+{
+  type: "Antifungal",
+  generic: "Nystatin Group",
+  brand: "Tab. Nystatin (ACME), Tab. Canstat (JAYSON), Drop. Nystat (ACME), Drop. Candex (SQUARE), Drop. Fungistin (BEXIMCO)"
+},
+{
+  type: "Antifungal",
+  generic: "Topical Antifungal Drugs",
+  brand: "Oint. Fungalin (CHEMIST), Oint. Ensal (RENATA), Oint. Dermin (JAYSON), Oint. G Benzosal (Gonoshasthya)"
+},
+{
+  type: "Respiratory",
+  generic: "Cough Expectorant Drugs",
+  brand: "Inj. Aminophylin (Ambee), Inj. Cardophylin (Sanofi), Inj. Fillin (Opsonin), Liq. Cofnil (ACI), Liq. Cofnix (Avon), Liq. Reskem (Kemiko), Liq. Broncho Vet (Acme), Syp. Ambrox (Square), Syp. Brodil (ACI), Syp. Albasin (Hamdard), Syp. Tuska (Square), Syp. Dilores Vet (Renata), Syp. Polcough Vet (Gentry), Syp. PB Cough (Wmc), Pow. Mucospel Vet (Square)"
+},
+{
+  type: "Diuretic",
+  generic: "Diuretics Drugs",
+  brand: "Inj. Lasix (Sanofi), Inj. Frusemide (Gonoshasthaya), Inj. Fusid (Square), Inj. Frusin (Opsonin), Inj. Frusix (Gaco), Inj. Manisol (Orion), Inj. Osmosol (Beximco), Inj. Mannitol (Opso Saline)"
+},
+{
+  type: "Nerve Tonic",
+  generic: "Neuro-vitamin / Nerve Tonic Drugs",
+  brand: "Inj. Nervin (JAYSON), Inj. Neuro B Best (Renata), Inj. Myelin (Opsonin), Inj. Reoplex Forte (Rephco), Tab. Neuro (SQUARE), Tab. Neuron Best (Renata), Tab. Vibon (Insepta), Pow. Eskavit B1 B2 (SK+F), Pow. Ribothin (OPSONIN)"
+},
+{
+  type: "Digestive Stimulant",
+  generic: "Digestive Stimulant / Rumenotoric Powders",
+  brand: "Pow. Zymogen (CHEMIST), Pow. Apitazym (Al-Madina), Pow. Zymo Vet (ACME), Pow. Appevet (TECHNO), Pow. Digimax (SK+F), Pow. Hazmi Vet (POPULAR), Pow. Appitizer (OPSONIN), Pow. Digimix (ACI), Pow. DB Zyme (Navana), Pow. Rumenal (FnF), Pow. Rumen Plus (TECHNO), Pow. Bovi Gold (ACI), Pow. Methucal (Super Power), Pow. Detox Vet (SQUARE), Pow. Bre-cal (Bridge), Pow. Bovi Vet (POPULAR), Pow. Bovi Cure (Navana), Pow. Gut-Fix (ACI), Pow. Ruchamax (ACI)"
+},
+{
+  type: "Digestive Stimulant",
+  generic: "Appetizer Drugs (Bolus)",
+  brand: "Bol. Amoran (ACME), Bol. Anorexon (Renata), Bol. Mivit Vet (CHEMIST), Bol. Hozom Vet (ACI), Bol. Rexon (SK+F), Bol. Rumix (Navana), Bol. Grumen Vet (SQUARE), Bol. Fatenin (OPSONIN), Bol. Faty (POPULAR), Bol. Rumifat (EON), Bol. Anorexon DS (Renata), Bol. Rumenton (Renata), Bol. Motivet (POPULAR), Bol. Rumicure (CHEMIST), Bol. Albenton Vet (Albion), Bol. Rumen Vet (Ethical), Bol. Rumiton (EON)"
+},
+{
+  type: "Antidiarrhoeal",
+  generic: "Antidiarrhoeal Drugs (Powder)",
+  brand: "Pow. Dia Vet (Pharmaco), Pow. DD Nil (ACI), Pow. Entro Vet (Pharmaco), Pow. Diacare (DFL), Pow. Dyrosol (DFL), Pow. CD24 (Golden Agrovet)"
+},
+{
+  type: "Antidiarrhoeal / Rumen",
+  generic: "Anti-Bloat Drugs (Liquid)",
+  brand: "Liq. Bloat (ACME), Liq. Veticom (Orion), Liq. Zero Bloat (Renata), Liq. Lefoarn Vet (ACME), Liq. Tympany (Doctors Agrovett), Liq. No Bloat (Square), Liq. Bloat Zero (Ben), Liq. Off Bloat (ACI), Liq. Bloat (Al-Madina), Liq. Magvet (ACME), Liq. Magvet Plus (ACME), Liq. Maglax Vet (MedRX), Liq. Frelax (Beximco)"
+},
+{
+  type: "Rumen / Electrolyte",
+  generic: "Anti-Acidosis Drugs",
+  brand: "Inj. Sodium Bicarb (Opso Saline), Inj. Sodib (JAYSON), Inj. SB Nate (ACME), Inj. Magvet (ACME), Oxecon-S Vet (ACME)"
+},
+{
+  type: "Digestive Support",
+  generic: "Prebiotic & Probiotic Drugs",
+  brand: "Bol. Biolact Vet (SQUARE), Bol. Acilac Plus (ACI), Pow. Rumi Cell (POPULAR), Pow. Rumen E (RENATA), Pow. UB SACC (ACI), Pow. Salactose (Pic-bio), Pow. Megalac-PF (ACI), Pow. Nexpro (ACI), Pow. Salacid J (SK+F), Pow. Biogut (ACI), Pow. Biogut XP (Interprovet Ltd.)"
+},
+{
+  type: "Metabolic Support/Fattening",
+  generic: "Butaphosphan + Cyanocobalamin",
+  brand: "Inj. A-sol Vet (ACME), Inj. Catopan Vet (ACI), Inj. Buphos Vet (SQUARE), Inj. Catophos Vet (Renata), Inj. Catasol (FnF), Inj. Butaphos Vet (Ethical), Inj. Stressol (Opsonin), Inj. Megasol (Popular)"
+},
+{
+  type: "Metabolic Support/Fattening",
+  generic: "Toldimphos + Cyanocobalamin",
+  brand: "Inj. Vlaphos Vet (Renata), Inj. Acitol B12 Vet (ACI), Inj. Megaphos Vet (Popular), Inj. Tolphos Vet (ACME), Inj. Phos Vet (Globe), Inj. Metaphos Vet (Techno), Inj. Metagen Vet (Chemist), Inj. Remcose Plus Vet (Bengal)"
+},
+{
+  type: "Vitamin",
+  generic: "Vitamin B-Complex Drugs",
+  brand: "Inj. Biona Forte Vet (Techno), Inj. B50 Vet (Square), Inj. B Com Vit Vet (FnF), Inj. Beco Vet (Popular), Inj. Revit B (Opsonin), Inj. Bional Vet (Techno), Inj. V-plex Vet (Acme), Liq. B Com Vit (Square), Liq. Vigest (Renata)"
+},
+{
+  type: "Vitamin",
+  generic: "Vitamin B–C Complex (Powder & Injectable)",
+  brand: "Pow. Eskavit B-C (ACI), Pow. Thavin WSP (Square), Pow. Kivit B-C (Kemiko), Pow. Becovit B-C (FnF), Pow. Eskavit B-C (SK+F), Pow. Rena B-C (Renata)"
+},
+{
+  type: "Vitamin",
+  generic: "Vitamin A, D₃, E (Injectable)",
+  brand: "Inj. Vita ADE (ACME), Inj. ES ADE (Square), Inj. Eskavit ADE (SK+F), Inj. Adevit Vet (Ethical), Inj. Acivit ADE (ACI), Inj. Adesol Plus (Techno), Inj. Renasol ADE (Renata), Inj. Adesol Vet (Chemist), Inj. EDA Vet ADE (Bridge), Inj. Revit ADE (Opsonin), Inj. Hyvit ADE Vet (Al-Madina), Inj. Vitagard ADE (Guardian), Inj. Adesol Forte (Techno), Inj. Ade Vet (Globe), Inj. Renasol AD3E (Renata)"
+},
+{
+  type: "Vitamin",
+  generic: "Vitamin A, D₃, E (Liquid)",
+  brand: "Liq. Adevit (Techno), Liq. Adevit Vet (Advent), Liq. Albitvit ADE (Albion), Liq. Gainovit ADE (Techno), Liq. Remevit ADE (Bengal), Liq. Vita ADE Vet (Navana)"
+},
+{
+  type: "Vitamin",
+  generic: "Vitamin E + Selenium",
+  brand: "Inj. E Vet Plus (ACME), Inj. Vitaject ES (WMC), Liq. Rena Sel-E (Renata), Liq. E Sel (Square), Sol. Hyvit ES (Al-Madina), Sol. Myogaster-E (Organic), Sol. Eskavit E (SK+F), Pow. E Sel (Square), Pow. Sel-E Boost (ACI), Pow. Eskavit E (SK+F), Pow. E-Vet WSP (ACME), Pow. Revit ES WSP (Opsonin), Pow. Sel-E (Popular), Bol. SE (ACI)"
+},
+{
+  type: "Vitamin / Mineral",
+  generic: "DB Vitamins (Multivitamin–Mineral Powders)",
+  brand: "Pow. Eskavit DB (SK+F), Pow. Acivit DB Gold (ACI), Pow. Renavit DB (RENATA), Pow. Vitamix DB (ACME), Pow. Chemovit DB (CHEMIST), Pow. Megavit DB (NOVARTIS), Pow. DB Vit (NAVANA), Pow. Nutrimix DB (Ethical), Pow. DB Vitamin (SQUARE), Pow. Adivit DB (FnF), Pow. Phoscal DB (OPSONIN), Pow. Vectro DB (ACI), Pow. Vitamix DB Super (ACME), Pow. Renavit DB Plus (RENATA), Pow. Eskavit DB Plus (SK+F), Pow. Ultravit DB (POPULAR), Pow. Hyivit DB (Al-Madina), Pow. Promix DB (GENTRY), Pow. Vitalite DB (Avon), Pow. Vitax-DB Gold (Eon), Pow. Albivit DB (ALBION), Pow. Biovit DB (Biopharma), Pow. DB Best (DREAM)"
+},
+{
+  type: "Multivitamin",
+  generic: "Multivitamins (Injection)",
+  brand: "Inj. Aminovit Plus Vet (Popular), Inj. Aminogard (Guardian), Inj. Aminomax Vet (Globe), Inj. Proliv Vet (Popular), Inj. Vita-S Plus (Chemist), Inj. Multivit (Square), Inj. Adivit (FnF), Inj. Vita-S Super (Chemist), Inj. Vitatonic (Renata)"
+},
+{
+  type: "Vitamin / Mineral",
+  generic: "Vitamin D3 + Calcium + Phosphorus (Solution)",
+  brand: "Liq. Calplex (Square), Liq. Capsoln (Navana), Liq. Aciplex Vet (Square)"
+},
+{
+  type: "Vitamin / Mineral",
+  generic: "Calcium + Vit D3 + Vit B12 + Minerals (Suspension)",
+  brand: "Sus. Calvet P (ACI), Sus. Sancal Vet (Elanco), Sus. Biocal P (Biopharma), Sus. Sucal P (Square), Sus. Capsola (Navana), Sus. Remecal (Renata)"
+},
+{
+  type: "Vitamin / Mineral",
+  generic: "Calcium + Vitamin D3 + Vitamin B12 + Minerals (Powder)",
+  brand: "Pow. Phoscal FP (Opsonin), Pow. E Cal P (Eon), Pow. Sancal P (Novartis)"
+},
+{
+  type: "Vitamin / Mineral",
+  generic: "Multivitamin-Mineral-Amino Acid + Appetizer (Powder)",
+  brand: "Pow. Calfostonic (ACI)"
+},
+{
+  type: "Mineral",
+  generic: "Mineral Supplements (Powder)",
+  brand: "Pow. Pro-Mix DB (ACI), Pow. Availa 4 (Renata), Pow. DCP (Popular), Pow. Square DCP (Square), Pow. DCP Plus (Opsonin), Pow. Di-Cal P Plus (Pharmaco), Pow. DCP Boost (Albion)"
+},
+{
+  type: "Calcium",
+  generic: "Calcium Preparations (Injection)",
+  brand: "Inj. Decat Vet (ACME), Inj. Caldcx Vet (Popular), Inj. Mifenil (Square), Inj. MC Vet (Eon), Inj. Cal-D-Mag (Renata), Inj. Caldex Vet (Popular), Inj. Calfidos Vet (Techno), Inj. CEMP Gard (Guardian), Inj. Calplus Vet (Al-Madina), Inj. Camadex Vet (Bengal), Inj. Magical 28 (SK+F), Inj. Cofacalcium (Advance), Inj. Caldimax (Techno), Inj. Calboric Vet (Renata)"
+},
+{
+  type: "Calcium",
+  generic: "Calcium Preparations (Oral Liquid/Suspension)",
+  brand: "Liq. Calvet-P (ACI), Liq. CP-vet (ACME), Liq. Remecal (Bengal), Liq. Renacal-P (Renata), Sus. Bonacal-P (ACI), Sus. Calpha PD (Popular), Sus. Phoscal PD (Opsonin)"
+},
+{
+  type: "Calcium",
+  generic: "Calcium Bolus",
+  brand: "Bol. Calpha DB (Popular), Bol. Calvet-DB (ACI), Bol. Phoscal DB (Opsonin), Bol. CP-vet Plus (ACME)"
+},
+{
+  type: "Mineral",
+  generic: "Zinc Preparations (Liquid)",
+  brand: "Sol. ZS (Opsonin), Sol. Zesup Vet (Square), Sol. Zis-Vet (ACME), Sol. Soluzink Vet (Popular), Sol. Albi Zinc (Albion), Sol. D Zinc (Dream), Liq. A Zinc-Care (SK-F), Liq. Zismo Vet (Kemico), Liq. Xinc Care (SK-F), Liq. Zis (ACME), Liq. O Zinc (Renata)"
+},
+{
+  type: "Mineral",
+  generic: "Zinc Powder",
+  brand: "Pow. FRA Zink C4 (ACI), Pow. Gold Zinc (ACI)"
+},
+{
+  type: "Mineral",
+  generic: "Zinc Bolus",
+  brand: "Bol. Zeenee (Chemist), Bol. Zis Vet (ACME), Bol. Ready Zinc 200 (Popular), Bol. Zinct Vet (Navana), Bol. Zeeflu (Incepta), Bol. Albi Zinc (Albion), Bol. Zill Vet (Gentry), Bol. Azinck DS Vet (ACI)"
+},
+{
+  type: "Liver Tonic",
+  generic: "Liver Tonic (Liquid)",
+  brand: "Liq. Liva Vit (Square), Liq. Livatone (Globe), Liq. Hepavet (Jayson), Liq. Renaliv (Renata), Liq. Superliv (ACME), Liq. Hepatovit (ACME), Liq. Hepamin (Novartis), Liq. Livalpex (Popular), Liq. Hepamine (ACME), Liq. Hepatonic (SK+F), Liq. Hepafit Vet (ACME)"
+},
+{
+  type: "Hematinic",
+  generic: "Hematinics Drugs",
+  brand: "Inj. Hemovit (Renata), Inj. Vitaboost (Avon), Inj. Hemogard (Guardian), Inj. Hematopan B12 (Advance), Inj. Hempro Vet (Square), Inj. Iron Dextran Vet (Techno), Sol. Ferovet (ACME), Sol. Ferosol Vet Plus (ACME), Liq. Haemplus Vet DS (Bengal), Pow. Super Tonic (SP)"
+},
+{
+  type: "Metabolic Disorder",
+  generic: "Anti-Ketosis Drugs",
+  brand: "Sol. Vita D Plus (ACME), Liq. Procol (FnF)"
+},
+{
+  type: "Anticholinergic",
+  generic: "Atropine",
+  brand: "Inj. Atro Vet (Techno), Inj. Atropine (Jayson), Inj. Atropine Sulphate Vet (Arifs), Inj. Atropine Sulphate Vet (Chemist), Inj. Tropin Vet (ACME), Inj. Estropin (SK+F)"
+},
+{
+  type: "Hemostatic / Coagulant",
+  generic: "Coagulant Drugs",
+  brand: "Inj. Hemosin (Chemist), Inj. Caprolex (Techno), Inj. Anaroxyl (Nuvista), Inj. Anaxyl (ACI), Inj. Enclot (Opsonin), Inj. Fibrino (SK+F), Inj. Frabex (Square), Inj. Hemostat (Aristopharma), Inj. Tracid Vet (ACME)"
+},
+{
+  type: "Electrolyte",
+  generic: "Electrolyte Drugs",
+  brand: "Liq. Glucohart Vet (Popular), Pow. Glucolyte (ACME), Pow. Oralyte (Opsonin), Pow. Acilyte (ACI), Pow. Renalyte (Renata), Pow. Anti Stress (Dream), Pow. Eskalyte (SK+F), Pow. E-lyte (Popular), Pow. ACI DCP Gold (ACI), Pow. Nes A (FnF), Pow. Electro Plus (Techno), Pow. Electromin (Square)"
+},
+{
+  type: "Fluid Preparations",
+  generic: "Dextrose / Saline / Balanced IV Fluids",
+  brand: "Inj. Dextrose 5% (Opso Saline), Inj. Dexaqua 5% (Beximco), Inj. Dextrose 5% (ACME), Inj. Dextrose 10% (Opso Saline), Inj. Dexaqua 10% (Beximco), Inj. Dextrose 10% (ACME), Inj. Glucolin Vet 25% (Popular), Inj. Dextrose 25% (Opso Saline), Inj. Glucolin Vet 50% (Popular), Inj. Normal Saline (ACME), Inj. Soloride (Opso Saline), Inj. DNS 5% (Beximco), Inj. DNS 5% (ACME), Inj. Dextroride (Beximco), Inj. Cholera Saline CS (ACME), Inj. Diasol (Libra), Inj. Koloride (Beximco), Inj. Kolosal (Popular), Inj. Cholera Saline (Opso Saline), Inj. Hartman's Sol (Opso Saline), Inj. HARTSOL Sol (Libra), Inj. Lactodex (Beximco), Inj. Ringer's Sol (Opso Saline)"
+},
+{
+  type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Atropine Sulfate",
+  brand: "Inj. Atrovet (Techno), Inj. Atropine (Jayson), Inj. Tropinviet (ACME)"
+},
+{
+  generic: "Promethazine Hydrochloride 50 mg",
+  brand: "Inj. Phemarax (FnF), Inj. Phemar (Jayson), Inj. Flugan (Techno), Inj. Promodin (Chemist)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Chlorpromazine Hydrochloride 50 mg",
+  brand: "Inj. Largactil Vet (Rhonpolene)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Diazepam 10 mg",
+  brand: "Inj. Easium (Opsonin), Inj. Seduxen (Ambee), Inj. G Diazepam (Gonoshasthya)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Xylazine Hydrochloride",
+  brand: "Inj. Rompun 2% (Bayer), Inj. Ilium Xylazil 100 (Troy Lab)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Lidocaine",
+  brand: "Inj. Jesocaine (Jayson), Inj. Jesocaine A (Jayson), Inj. G Lidocaine (Gonoshasthya), Inj. G Lidocaine A (Gonoshasthya)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Ketamine Hydrochloride 50 mg",
+  brand: "Inj. Calypsol (Gedeon Richter), Inj. Ketamine (ACI), Inj. G Ketamine (Gonoshasthya), Inj. Ketamine (Rote Medica)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Thiopental Sodium",
+  brand: "Inj. G Thiopental (Gonoshasthya), Inj. Thiopental (Rote Medica)"
+},
+{type: "Pre-anesthetic & Anesthetic Drugs",
+  generic: "Diazepam (Tablet)",
+  brand: "Tab. Sedil (Square), Tab. Easium (Opsonin)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine 1%",
+  brand: "Sol. Povin (Opsonin), Sol. Povise P (Jayson), Sol. Viodin (Square)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine 5%",
+  brand: "Sol. Povisep (Jayson), Oint. Apodin (Globe), Oint. Arodin (Aristopharma), Oint. Povin (Opsonin)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine 6%",
+  brand: "Cream Povisep (Jayson)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine 7.5%",
+  brand: "Sol. Viodin (Square), Sol. Povisep (Jayson)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine 10%",
+  brand: "Sol. Apodin (Globe), Sol. Cleanser (General Pharma), Sol. Polydin (Chemist), Sol. Povet (FnF), Lot. Arodin (Aristopharma)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine (Gel)",
+  brand: "Gel. Povisep (Jayson)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Povidone Iodine (Powder)",
+  brand: "Pow. Povisep (Jayson)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Nonionic Detergent",
+  brand: "Sol. Shift (Renata)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Sodium Hypochloride",
+  brand: "Sol. Safewat (Opsonin)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Iodine Compound + Acid",
+  brand: "Sol. Fam 30 (Renata)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Glutaraldehyde",
+  brand: "Sol. GPC 8 (Renata)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Glutaraldehyde 15%",
+  brand: "Sol. Bioclean Plus (Chemist)"
+},
+{
+  type: "Antiseptic Drugs",
+  generic: "Ammonium Chloride + Glutaraldehyde",
+  brand: "Sol. Virocid (ACI)"
+},
+{ type: "Hormone", generic: "Cloprostenol sodium", brand: "Ovuprost (Renata), Remoprost (ACI), Remepost (Bengal Remed)" },
+{ type: "Hormone", generic: "Prostaglandin analogue", brand: "Prostenol (Techno), Estrumate (Pharmaco), Synchromate (BMR Pharma)" },
+{ type: "Hormone", generic: "Dinoprost", brand: "Lutalyse (Upjohn)" },
+{ type: "Hormone", generic: "Dinoprost trometamol", brand: "Dinoprost (Techno)" },
+{ type: "Hormone", generic: "Luprostiol", brand: "Prosolvin (Bengal)" }, 
+{ type: "Hormone", generic: "Gonadorelin (GnRH)", brand: "Fertilon (Techno), Ovurelin (Renata), Fertagyl (Intervet)" },
+{ type: "Hormone", generic: "PMSG (Pregnant mare serum gonadotropin)", brand: "Folligon (Renata)" },
+{ type: "Hormone", generic: "hCG (Human chorionic gonadotropin)", brand: "Chorulon (Intervet)" },
+{ type: "Hormone", generic: "Oxytocin", brand: "Oxin (Techno), Uni-Oxytocin (Arifs), Pitocin (Chemist), Oxitocina Diana (WMC)" },
+{ type: "Hormone", generic: "Progesterone", brand: "Inj Progesterone (Intervet)" },
+{ type: "Hormone", generic: "Methylergometrine", brand: "Metherspan (Opsonin)" },
+{ type: "Herbal Reproduction", generic: "Herbal uterine tonic", brand: "Utoklin (Novartis)" },
+{ type: "Herbal Reproduction", generic: "Herbal uterine tonic", brand: "Exapar (ACI)" },
+{ type: "Herbal Reproduction", generic: "Herbal reproductive capsule", brand: "Janova (ACI)" },
+{ type: "Vaccine", generic: "Anthrax", brand: "Anthrax Vaccine (LRI)" },
+{ type: "Vaccine", generic: "FMD", brand: "FMD Vaccine (LRI)" },
+{ type: "Vaccine", generic: "Black Quarter", brand: "BQ Vaccine (LRI)" },
+{ type: "Vaccine", generic: "Hemorrhagic Septicemia", brand: "HS Vaccine (LRI)" },
+{ type: "Vaccine", generic: "PPR", brand: "PPR Vaccine (LRI)" },
+{ type: "Vaccine", generic: "Rabies", brand: "Rabies Vaccine (LRI)" },
+{ type: "Vaccine", generic: "Goat Pox", brand: "Goat Pox Vaccine (LRI)" },
+
+        ];
+
+        const typeSelect = document.getElementById('typeSelect');
+        const genericSelect = document.getElementById('genericSelect');
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const drugCountSpan = document.getElementById('drug-count');
+        const emptyState = document.getElementById('emptyState');
+        const detailModal = document.getElementById('detailModal');
+        const modalContent = document.getElementById('modalContent');
+        const brandList = document.getElementById('brandList');
+
+        // Color Utility for brands
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const h = Math.abs(hash) % 360;
+            return `hsl(${h}, 70%, 45%)`;
+        }
+
+        function init() {
+            populateTypes();
+            updateGenericOptions();
+            renderTable(drugDatabase);
+            
+            typeSelect.addEventListener('change', () => {
+                updateGenericOptions();
+                filterData();
+            });
+            genericSelect.addEventListener('change', filterData);
+            searchInput.addEventListener('input', filterData);
+        }
+
+        function populateTypes() {
+            const types = [...new Set(drugDatabase.map(drug => drug.type))].sort();
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeSelect.appendChild(option);
+            });
+        }
+
+        function updateGenericOptions() {
+            const currentType = typeSelect.value;
+            const currentGeneric = genericSelect.value;
+            
+            genericSelect.innerHTML = '<option value="All">All Generics</option>';
+            
+            const filteredGenerics = drugDatabase
+                .filter(drug => currentType === 'All' || drug.type === currentType)
+                .map(drug => drug.generic)
+                .sort();
+
+            const uniqueGenerics = [...new Set(filteredGenerics)];
+            
+            uniqueGenerics.forEach(gen => {
+                const option = document.createElement('option');
+                option.value = gen;
+                option.textContent = gen;
+                genericSelect.appendChild(option);
+            });
+
+            if (uniqueGenerics.includes(currentGeneric)) {
+                genericSelect.value = currentGeneric;
+            }
+        }
+
+        function filterData() {
+            const selectedType = typeSelect.value;
+            const selectedGeneric = genericSelect.value;
+            const searchTerm = searchInput.value.toLowerCase();
+
+            const filtered = drugDatabase.filter(drug => {
+                const matchesType = selectedType === 'All' || drug.type === selectedType;
+                const matchesGeneric = selectedGeneric === 'All' || drug.generic === selectedGeneric;
+                const matchesSearch = drug.generic.toLowerCase().includes(searchTerm) || 
+                                     drug.brand.toLowerCase().includes(searchTerm);
+                return matchesType && matchesGeneric && matchesSearch;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(data) {
+            resultsContainer.innerHTML = '';
+            drugCountSpan.textContent = data.length;
+            
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            data.forEach(drug => {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-12 gap-4 p-5 border-b border-slate-100 hover:bg-teal-50/50 transition-all items-center animate-fade-in cursor-pointer group';
+                row.onclick = () => openModal(drug);
+
+                const brands = drug.brand.split(',').map(b => b.trim());
+                const brandSummary = brands.slice(0, 2).map(b => {
+                    return `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-[11px] font-bold mr-1.5">${b}</span>`;
+                }).join('');
+
+                row.innerHTML = `
+                    <div class="col-span-5 md:col-span-4 pl-2">
+                        <div class="font-bold text-slate-900 text-sm md:text-base group-hover:text-teal-800 transition-colors">${drug.generic}</div>
+                        <div class="text-[9px] uppercase font-black text-teal-600/60 mt-1 tracking-widest">${drug.type}</div>
+                    </div>
+                    <div class="col-span-7 md:col-span-8 border-l border-slate-100 pl-6 flex flex-wrap items-center">
+                        <div class="flex items-center flex-wrap gap-y-1">
+                            ${brandSummary}
+                            ${brands.length > 2 ? `<span class="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg">+${brands.length - 2} more...</span>` : ''}
+                        </div>
+                        <div class="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                             <div class="bg-teal-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-md">
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                             </div>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.appendChild(row);
+            });
+        }
+
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            const toast = document.getElementById("toast");
+            toast.innerHTML = `<i class="fa-solid fa-check-circle mr-2 text-teal-400"></i> ${text} copied!`;
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function openModal(drug) {
+            document.getElementById('modalGeneric').textContent = drug.generic;
+            document.getElementById('modalType').textContent = drug.type;
+            
+            brandList.innerHTML = '';
+            const brands = drug.brand.split(',').map(b => b.trim()).filter(b => b !== "");
+
+            brands.forEach((brand, index) => {
+                const color = stringToColor(brand);
+                const item = document.createElement('div');
+                item.className = 'brand-badge w-full flex items-center justify-between gap-4 px-6 py-4 rounded-2xl bg-white border border-slate-100 shadow-sm cursor-pointer group active:bg-slate-50';
+                
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    copyToClipboard(brand);
+                };
+                
+                item.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black text-white shadow-inner" style="background-color: ${color}">
+                            ${index + 1}
+                        </span>
+                        <span class="font-bold text-slate-800 text-sm md:text-base">${brand}</span>
+                    </div>
+                    <i class="fa-solid fa-copy text-slate-300 group-hover:text-teal-500 transition-colors text-xs"></i>
+                `;
+                brandList.appendChild(item);
+            });
+
+            detailModal.classList.remove('hidden');
+            setTimeout(() => {
+                detailModal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            detailModal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                detailModal.classList.add('hidden');
+            }, 300);
+        }
+
+        detailModal.addEventListener('click', (e) => {
+            if (e.target === detailModal) closeModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>
