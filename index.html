@@ -113,35 +113,45 @@
         <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col shadow-xl z-10 overflow-y-auto">
             <div class="p-6 space-y-8">
                 <div>
-                    <h3 class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">Data Filtering</h3>
+                    <h3 class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">Clinical Filtering</h3>
                     
-                    <!-- 1. Category Dropdown -->
+                    <!-- 1. Disease Dropdown (NEW) -->
+                    <div class="mb-5">
+                        <label for="diseaseSelect" class="block text-[11px] font-bold text-teal-700 mb-2 uppercase tracking-wide">
+                            <i class="fa-solid fa-virus-covid mr-1"></i> 1. Select Disease / Indication
+                        </label>
+                        <select id="diseaseSelect" class="w-full bg-teal-50 border border-teal-200 text-teal-900 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-bold text-sm">
+                            <option value="All">All Diseases / Conditions</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Category Dropdown -->
                     <div class="mb-5">
                         <label for="typeSelect" class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
-                            1. Select Category
+                            2. Filter by Category
                         </label>
                         <select id="typeSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-semibold text-sm">
                             <option value="All">All Categories</option>
                         </select>
                     </div>
 
-                    <!-- 2. Generic Name Dropdown -->
+                    <!-- 3. Generic Name Dropdown -->
                     <div class="mb-5">
                         <label for="genericSelect" class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
-                            2. Select Generic Name
+                            3. Filter by Generic
                         </label>
                         <select id="genericSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all font-semibold text-sm">
                             <option value="All">All Generics</option>
                         </select>
                     </div>
 
-                    <!-- 3. Search Box -->
+                    <!-- 4. Search Box -->
                     <div>
                         <label for="searchInput" class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
-                            3. Search Brand or Generic
+                            4. Search Keywords
                         </label>
                         <div class="relative">
-                            <input type="text" id="searchInput" placeholder="Type to search..." class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium">
+                            <input type="text" id="searchInput" placeholder="Search brand or generic..." class="w-full bg-slate-50 border border-slate-200 text-slate-700 py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all text-sm font-medium">
                             <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-slate-400 text-xs"></i>
                         </div>
                     </div>
@@ -155,7 +165,7 @@
                 <div class="p-4 bg-teal-50 rounded-xl border border-teal-100">
                     <p class="text-[10px] text-teal-800 font-bold leading-relaxed">
                         <i class="fa-solid fa-circle-info mr-1"></i>
-                        Click on any drug row to view Indications, Dosage, and detailed brand list.
+                        Select a disease above to instantly find relevant treatments, or click a row for details.
                     </p>
                 </div>
             </div>
@@ -480,7 +490,7 @@
                 type: "Antihistaminic",
                 generic: "Promethazine Group",
                 brand: "Inj. Allerergen (RENATA), Inj. Flomic Vet (FnF), Inj. Phenerax (JAYSON), Inj. Flugan (TECHNO), Inj. Promodin Vet (CHEMIST), Bol. Dellergen Vet (RENATA), Bol. Promethazine (Al-Madina), Bol. Prom-al (Albion), Bol. Quickler (POPULAR)",
-                indications: "Allergic disorders, Sedation, Motion sickness.",
+                indications: "Allergic disorders, Sedation, Motion sickness, Vomiting.",
                 dosage: "Inj: 1 ml / 25-50 kg. Bolus: As per product strength.",
                 administration: "Intramuscular (IM) or Oral."
             },
@@ -1016,7 +1026,7 @@
                 generic: "Promethazine Hydrochloride 50 mg",
                 brand: "Inj. Phemarax (FnF), Inj. Phemar (Jayson), Inj. Flugan (Techno), Inj. Promodin (Chemist)",
                 type: "Pre-anesthetic & Anesthetic Drugs",
-                indications: "Sedation, Allergy, Motion sickness.",
+                indications: "Sedation, Allergy, Motion sickness, Vomiting.",
                 dosage: "1 - 2 mg / kg Body Weight.",
                 administration: "Deep Intramuscular (IM)."
             },
@@ -1308,6 +1318,7 @@
             },
         ];
 
+        const diseaseSelect = document.getElementById('diseaseSelect');
         const typeSelect = document.getElementById('typeSelect');
         const genericSelect = document.getElementById('genericSelect');
         const searchInput = document.getElementById('searchInput');
@@ -1329,16 +1340,48 @@
         }
 
         function init() {
+            populateDiseases();
             populateTypes();
             updateGenericOptions();
             renderTable(drugDatabase);
+            
+            // Event Listeners
+            diseaseSelect.addEventListener('change', filterData);
             
             typeSelect.addEventListener('change', () => {
                 updateGenericOptions();
                 filterData();
             });
+            
             genericSelect.addEventListener('change', filterData);
             searchInput.addEventListener('input', filterData);
+        }
+
+        function populateDiseases() {
+            // Extract all indications strings
+            let allIndications = [];
+            drugDatabase.forEach(drug => {
+                // Split by comma, semicolon, or period
+                const parts = drug.indications.split(/[,;.]/);
+                parts.forEach(part => {
+                    const cleanPart = part.trim();
+                    if (cleanPart && cleanPart.length > 2 && !cleanPart.toLowerCase().startsWith('and ')) {
+                        // Title case helper
+                        const formatted = cleanPart.charAt(0).toUpperCase() + cleanPart.slice(1);
+                        allIndications.push(formatted);
+                    }
+                });
+            });
+
+            // Remove duplicates and sort
+            const uniqueDiseases = [...new Set(allIndications)].sort();
+            
+            uniqueDiseases.forEach(disease => {
+                const option = document.createElement('option');
+                option.value = disease;
+                option.textContent = disease;
+                diseaseSelect.appendChild(option);
+            });
         }
 
         function populateTypes() {
@@ -1377,16 +1420,22 @@
         }
 
         function filterData() {
+            const selectedDisease = diseaseSelect.value;
             const selectedType = typeSelect.value;
             const selectedGeneric = genericSelect.value;
             const searchTerm = searchInput.value.toLowerCase();
 
             const filtered = drugDatabase.filter(drug => {
+                // Check Disease matches (partial string match inside indications)
+                const matchesDisease = selectedDisease === 'All' || 
+                                     drug.indications.toLowerCase().includes(selectedDisease.toLowerCase());
+
                 const matchesType = selectedType === 'All' || drug.type === selectedType;
                 const matchesGeneric = selectedGeneric === 'All' || drug.generic === selectedGeneric;
                 const matchesSearch = drug.generic.toLowerCase().includes(searchTerm) || 
                                       drug.brand.toLowerCase().includes(searchTerm);
-                return matchesType && matchesGeneric && matchesSearch;
+                
+                return matchesDisease && matchesType && matchesGeneric && matchesSearch;
             });
 
             renderTable(filtered);
