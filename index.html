@@ -6,7 +6,7 @@
     <title>VetRx Reference | Brand Formulary</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         
@@ -111,11 +111,20 @@
         
         <!-- Sidebar Controls -->
         <aside class="w-full md:w-80 bg-white border-r border-slate-200 flex flex-col shadow-xl z-10 overflow-y-auto">
-            <div class="p-6 space-y-8">
+            <div class="p-6 space-y-6">
+                
+                <!-- Add New Button -->
+                <button onclick="openAddModal()" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group">
+                    <i class="fa-solid fa-plus-circle text-lg group-hover:scale-110 transition-transform"></i>
+                    <span>Add New Entry</span>
+                </button>
+
+                <div class="h-px bg-slate-100"></div>
+
                 <div>
                     <h3 class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-[0.2em]">Clinical Filtering</h3>
                     
-                    <!-- 1. Disease Dropdown (NEW) -->
+                    <!-- 1. Disease Dropdown -->
                     <div class="mb-5">
                         <label for="diseaseSelect" class="block text-[11px] font-bold text-teal-700 mb-2 uppercase tracking-wide">
                             <i class="fa-solid fa-virus-covid mr-1"></i> 1. Select Disease / Indication
@@ -165,7 +174,7 @@
                 <div class="p-4 bg-teal-50 rounded-xl border border-teal-100">
                     <p class="text-[10px] text-teal-800 font-bold leading-relaxed">
                         <i class="fa-solid fa-circle-info mr-1"></i>
-                        Select a disease above to instantly find relevant treatments, or click a row for details.
+                        Select a disease above to instantly find relevant treatments, or click a row for details. Added drugs are saved locally.
                     </p>
                 </div>
             </div>
@@ -201,7 +210,7 @@
         </main>
     </div>
 
-    <!-- Enhanced Modal -->
+    <!-- Detail Modal -->
     <div id="detailModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300 p-4">
         <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-300 overflow-hidden flex flex-col max-h-[90vh]" id="modalContent">
             <!-- Modal Header -->
@@ -218,7 +227,7 @@
                         <span id="modalType">-</span>
                     </p>
                 </div>
-                <button onclick="closeModal()" class="absolute top-6 right-6 bg-white/10 hover:bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center transition-all group">
+                <button onclick="closeModal('detailModal')" class="absolute top-6 right-6 bg-white/10 hover:bg-white/20 rounded-full p-2 w-10 h-10 flex items-center justify-center transition-all group">
                     <i class="fa-solid fa-xmark group-hover:rotate-90 transition-transform"></i>
                 </button>
             </div>
@@ -258,8 +267,71 @@
 
             <!-- Footer -->
             <div class="bg-white p-4 border-t border-slate-100 shrink-0">
-                <button onclick="closeModal()" class="w-full bg-slate-900 hover:bg-black text-white py-3.5 rounded-xl font-black transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest">
+                <button onclick="closeModal('detailModal')" class="w-full bg-slate-900 hover:bg-black text-white py-3.5 rounded-xl font-black transition-all shadow-lg active:scale-95 text-xs uppercase tracking-widest">
                     Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Drug Modal -->
+    <div id="addModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center backdrop-blur-md opacity-0 transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg transform scale-95 transition-transform duration-300 overflow-hidden flex flex-col max-h-[90vh]" id="addModalContent">
+            <!-- Modal Header -->
+            <div class="bg-teal-700 text-white p-6 shrink-0 relative">
+                <h3 class="font-black text-xl tracking-tight"><i class="fa-solid fa-file-medical mr-2"></i>Add New Drug</h3>
+                <p class="text-teal-200 text-xs font-medium mt-1">Add to your local database</p>
+                <button onclick="closeModal('addModal')" class="absolute top-6 right-6 bg-white/10 hover:bg-white/20 rounded-full p-2 w-8 h-8 flex items-center justify-center transition-all group">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Form Body -->
+            <form id="addDrugForm" class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 p-6 space-y-4">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Category / Type</label>
+                    <input type="text" id="newType" required placeholder="e.g. Antibiotic, Vitamin" class="w-full bg-white border border-slate-200 text-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Generic Name</label>
+                    <input type="text" id="newGeneric" required placeholder="e.g. Amoxicillin Trihydrate" class="w-full bg-white border border-slate-200 text-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm font-semibold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Brand Names</label>
+                    <textarea id="newBrand" required placeholder="e.g. Moxacil, Fimox (Separate by commas)" rows="3" class="w-full bg-white border border-slate-200 text-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm font-medium"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Indications</label>
+                    <textarea id="newIndications" placeholder="Disease conditions..." rows="2" class="w-full bg-white border border-slate-200 text-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm font-medium"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Dosage</label>
+                        <textarea id="newDosage" placeholder="e.g. 1ml / 10kg" rows="2" class="w-full bg-white border border-slate-200 text-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm font-medium"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase">Administration</label>
+                        <textarea id="newAdmin" placeholder="e.g. IM / IV" rows="2" class="w-full bg-white border border-slate-200 text-slate-800 p-3 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm font-medium"></textarea>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-blue-700 font-medium">
+                    <i class="fa-solid fa-database mr-1"></i> Data is saved to your browser's local storage and will persist on this device.
+                </div>
+            </form>
+
+            <!-- Footer -->
+            <div class="bg-white p-4 border-t border-slate-100 shrink-0 flex gap-3">
+                <button onclick="closeModal('addModal')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-bold transition-all text-xs uppercase tracking-wider">
+                    Cancel
+                </button>
+                <button onclick="saveNewDrug()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-xs uppercase tracking-wider">
+                    Save Entry
                 </button>
             </div>
         </div>
@@ -268,8 +340,8 @@
     <div id="toast">Copied to clipboard!</div>
 
     <script>
-        // Enhanced Database with Dosage, Indications, and Administration
-        const drugDatabase = [
+        // Initial Massive Database
+        let drugDatabase = [
             { 
                 type: "Antibiotic", 
                 generic: "Penicillin", 
@@ -1326,7 +1398,9 @@
         const drugCountSpan = document.getElementById('drug-count');
         const emptyState = document.getElementById('emptyState');
         const detailModal = document.getElementById('detailModal');
+        const addModal = document.getElementById('addModal');
         const modalContent = document.getElementById('modalContent');
+        const addModalContent = document.getElementById('addModalContent');
         const brandList = document.getElementById('brandList');
 
         // Color Utility for brands
@@ -1339,7 +1413,10 @@
             return `hsl(${h}, 70%, 45%)`;
         }
 
+        // --- Core Functions ---
+
         function init() {
+            loadCustomDrugs(); // Load stored data first
             populateDiseases();
             populateTypes();
             updateGenericOptions();
@@ -1357,23 +1434,85 @@
             searchInput.addEventListener('input', filterData);
         }
 
+        // --- Data Persistence ---
+
+        function loadCustomDrugs() {
+            const stored = localStorage.getItem('vetrx_custom_drugs');
+            if (stored) {
+                try {
+                    const customDrugs = JSON.parse(stored);
+                    if (Array.isArray(customDrugs)) {
+                        drugDatabase.push(...customDrugs);
+                    }
+                } catch (e) {
+                    console.error("Failed to load custom drugs", e);
+                }
+            }
+        }
+
+        function saveNewDrug() {
+            const type = document.getElementById('newType').value.trim();
+            const generic = document.getElementById('newGeneric').value.trim();
+            const brand = document.getElementById('newBrand').value.trim();
+            const indications = document.getElementById('newIndications').value.trim();
+            const dosage = document.getElementById('newDosage').value.trim();
+            const admin = document.getElementById('newAdmin').value.trim();
+
+            if (!type || !generic || !brand) {
+                alert("Please fill in Category, Generic Name, and Brand Names.");
+                return;
+            }
+
+            const newDrug = {
+                type: type,
+                generic: generic,
+                brand: brand,
+                indications: indications || "No info provided",
+                dosage: dosage || "No info provided",
+                administration: admin || "No info provided"
+            };
+
+            // 1. Add to main array
+            drugDatabase.push(newDrug);
+
+            // 2. Save to localStorage
+            const stored = localStorage.getItem('vetrx_custom_drugs');
+            let customDrugs = stored ? JSON.parse(stored) : [];
+            customDrugs.push(newDrug);
+            localStorage.setItem('vetrx_custom_drugs', JSON.stringify(customDrugs));
+
+            // 3. Refresh UI
+            populateDiseases();
+            populateTypes();
+            updateGenericOptions();
+            filterData();
+            
+            // 4. Reset Form & Close Modal
+            document.getElementById('addDrugForm').reset();
+            closeModal('addModal');
+            showToast('Entry added successfully!');
+        }
+
+        // --- UI Population Functions ---
+
         function populateDiseases() {
+            // Keep current selection if possible
+            const currentSelection = diseaseSelect.value;
+            diseaseSelect.innerHTML = '<option value="All">All Diseases / Conditions</option>';
+
             // Extract all indications strings
             let allIndications = [];
             drugDatabase.forEach(drug => {
-                // Split by comma, semicolon, or period
                 const parts = drug.indications.split(/[,;.]/);
                 parts.forEach(part => {
                     const cleanPart = part.trim();
                     if (cleanPart && cleanPart.length > 2 && !cleanPart.toLowerCase().startsWith('and ')) {
-                        // Title case helper
                         const formatted = cleanPart.charAt(0).toUpperCase() + cleanPart.slice(1);
                         allIndications.push(formatted);
                     }
                 });
             });
 
-            // Remove duplicates and sort
             const uniqueDiseases = [...new Set(allIndications)].sort();
             
             uniqueDiseases.forEach(disease => {
@@ -1382,9 +1521,14 @@
                 option.textContent = disease;
                 diseaseSelect.appendChild(option);
             });
+
+            if(currentSelection !== 'All') diseaseSelect.value = currentSelection;
         }
 
         function populateTypes() {
+            const currentSelection = typeSelect.value;
+            typeSelect.innerHTML = '<option value="All">All Categories</option>';
+            
             const types = [...new Set(drugDatabase.map(drug => drug.type))].sort();
             types.forEach(type => {
                 const option = document.createElement('option');
@@ -1392,6 +1536,8 @@
                 option.textContent = type;
                 typeSelect.appendChild(option);
             });
+
+            if(currentSelection !== 'All') typeSelect.value = currentSelection;
         }
 
         function updateGenericOptions() {
@@ -1419,6 +1565,8 @@
             }
         }
 
+        // --- Filtering Logic ---
+
         function filterData() {
             const selectedDisease = diseaseSelect.value;
             const selectedType = typeSelect.value;
@@ -1426,20 +1574,21 @@
             const searchTerm = searchInput.value.toLowerCase();
 
             const filtered = drugDatabase.filter(drug => {
-                // Check Disease matches (partial string match inside indications)
                 const matchesDisease = selectedDisease === 'All' || 
                                      drug.indications.toLowerCase().includes(selectedDisease.toLowerCase());
 
                 const matchesType = selectedType === 'All' || drug.type === selectedType;
                 const matchesGeneric = selectedGeneric === 'All' || drug.generic === selectedGeneric;
                 const matchesSearch = drug.generic.toLowerCase().includes(searchTerm) || 
-                                      drug.brand.toLowerCase().includes(searchTerm);
+                                     drug.brand.toLowerCase().includes(searchTerm);
                 
                 return matchesDisease && matchesType && matchesGeneric && matchesSearch;
             });
 
             renderTable(filtered);
         }
+
+        // --- Rendering ---
 
         function renderTable(data) {
             resultsContainer.innerHTML = '';
@@ -1454,7 +1603,7 @@
             data.forEach(drug => {
                 const row = document.createElement('div');
                 row.className = 'grid grid-cols-12 gap-4 p-5 border-b border-slate-100 hover:bg-teal-50/50 transition-all items-center animate-fade-in cursor-pointer group';
-                row.onclick = () => openModal(drug);
+                row.onclick = () => openDetailModal(drug);
 
                 const brands = drug.brand.split(',').map(b => b.trim());
                 const brandSummary = brands.slice(0, 2).map(b => {
@@ -1482,6 +1631,8 @@
             });
         }
 
+        // --- Utilities ---
+
         function copyToClipboard(text) {
             const el = document.createElement('textarea');
             el.value = text;
@@ -1489,18 +1640,21 @@
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            
+            showToast(`${text} copied!`);
+        }
+
+        function showToast(message) {
             const toast = document.getElementById("toast");
-            toast.innerHTML = `<i class="fa-solid fa-check-circle mr-2 text-teal-400"></i> ${text} copied!`;
+            toast.innerHTML = `<i class="fa-solid fa-check-circle mr-2 text-teal-400"></i> ${message}`;
             toast.className = "show";
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        function openModal(drug) {
+        // --- Modal Logic ---
+
+        function openDetailModal(drug) {
             document.getElementById('modalGeneric').textContent = drug.generic;
             document.getElementById('modalType').textContent = drug.type;
-            
-            // Populate Clinical Info
             document.getElementById('modalIndications').textContent = drug.indications || 'Refer to package insert.';
             document.getElementById('modalDosage').textContent = drug.dosage || 'Refer to package insert.';
             document.getElementById('modalAdmin').textContent = drug.administration || 'Refer to package insert.';
@@ -1530,26 +1684,41 @@
                 brandList.appendChild(item);
             });
 
-            detailModal.classList.remove('hidden');
+            openModalBase('detailModal', 'modalContent');
+        }
+
+        function openAddModal() {
+            openModalBase('addModal', 'addModalContent');
+        }
+
+        function openModalBase(modalId, contentId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(contentId);
+            modal.classList.remove('hidden');
             setTimeout(() => {
-                detailModal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
-                modalContent.classList.add('scale-100');
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
             }, 10);
         }
 
-        function closeModal() {
-            detailModal.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(modalId === 'detailModal' ? 'modalContent' : 'addModalContent');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
             setTimeout(() => {
-                detailModal.classList.add('hidden');
+                modal.classList.add('hidden');
             }, 300);
         }
 
-        detailModal.addEventListener('click', (e) => {
-            if (e.target === detailModal) closeModal();
-        });
+        // Close modals on outside click
+        window.onclick = function(event) {
+            if (event.target == detailModal) closeModal('detailModal');
+            if (event.target == addModal) closeModal('addModal');
+        }
 
         init();
     </script>
